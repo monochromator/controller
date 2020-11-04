@@ -6,7 +6,7 @@
 #include "../shared-lib/utilities.hpp"
 
 /**
- * Mocked version of the simulation, it returns cos of (current time * current step)
+ * Mocked version of the analysis, it returns cos of (current time * current step)
  *
  * @param socket Socket connected to PC
  * @param start First step
@@ -14,16 +14,16 @@
  * @param tick_rate Stride between steps
  * @return Results
 */
-std::vector<std::pair<uint32_t, float>> simulation(BufferedSerial& socket, uint32_t start, uint32_t end, uint32_t stride) {
+std::vector<std::pair<uint32_t, float>> analyse(BufferedSerial& socket, uint32_t start, uint32_t end, uint32_t stride) {
     // Send invalid arguments
     if (end > start) {
-        chroma::rpc_send(socket, chroma::SimulationPacketHeader::InvalidArguments);
+        chroma::rpc_send(socket, chroma::AnalysisPacketHeader::InvalidArguments);
     }
 
-    // Notify simulation start
-    chroma::rpc_send(socket, chroma::SimulationPacketHeader::Start);
+    // Notify analysis start
+    chroma::rpc_send(socket, chroma::AnalysisPacketHeader::Start);
 
-    // Run simulation
+    // Run analysis
     std::vector<std::pair<uint32_t, float>> results;
     auto step = start;
     do {
@@ -45,7 +45,7 @@ int main() {
     // Run listening function
     Thread listening_thread;
     listening_thread.start([&](){
-        chroma::listen(state, simulation);
+        chroma::listen(state, analyse);
     });
 
     // Boot device and stay in idle state

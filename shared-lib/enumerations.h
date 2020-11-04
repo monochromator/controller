@@ -7,7 +7,7 @@ namespace chroma {
     enum ControllerState : uint32_t {
         Booting,
         PacketReceived,
-        ExecuteSimulation,
+        Analyse,
 
         Idle
     };
@@ -17,13 +17,13 @@ namespace chroma {
     */
     enum PacketHeader : uint32_t {
         Ping = 0,
-        Simulation = 1
+        Analysis = 1
     };
 
     /**
-    * Header sent before simulation-specific packet body
+    * Header sent before analysis-specific packet body
     */
-    enum SimulationPacketHeader : uint32_t {
+    enum AnalysisPacketHeader : uint32_t {
         InvalidArguments = 0,
         Start = 1,
         ResultsSize = 2
