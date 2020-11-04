@@ -20,6 +20,9 @@ std::vector<std::pair<uint32_t, float>> simulation(BufferedSerial& socket, uint3
         chroma::rpc_send(socket, chroma::SimulationPacketHeader::InvalidArguments);
     }
 
+    // Notify simulation start
+    chroma::rpc_send(socket, chroma::SimulationPacketHeader::Start);
+
     // Run simulation
     std::vector<std::pair<uint32_t, float>> results;
     auto step = start;

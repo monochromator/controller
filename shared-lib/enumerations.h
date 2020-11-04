@@ -25,6 +25,7 @@ namespace chroma {
     */
     enum SimulationPacketHeader : uint32_t {
         InvalidArguments = 0,
-        ResultsSize = 1
+        Start = 1,
+        ResultsSize = 2
     };
 }
