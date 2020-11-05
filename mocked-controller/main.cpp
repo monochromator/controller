@@ -1,9 +1,9 @@
 #include <chrono>
 #include <type_traits>
 
-#include "mbed.h"
 #include "../shared-lib/rpc_utilities.hpp"
 #include "../shared-lib/utilities.hpp"
+#include "mbed.h"
 
 /**
  * Mocked version of the analysis, it returns cos of (current time * current step)
@@ -13,7 +13,7 @@
  * @param end Last step
  * @param tick_rate Stride between steps
  * @return Results
-*/
+ */
 std::vector<std::pair<uint32_t, float>> analyse(BufferedSerial& socket, uint32_t start, uint32_t end, uint32_t stride) {
     // Send invalid arguments
     if (end > start) {
@@ -44,9 +44,7 @@ int main() {
 
     // Run listening function
     Thread listening_thread;
-    listening_thread.start([&](){
-        chroma::listen(state, analyse);
-    });
+    listening_thread.start([&]() { chroma::listen(state, analyse); });
 
     // Boot device and stay in idle state
     chroma::to_idle(state);
