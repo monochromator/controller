@@ -94,8 +94,8 @@ void to_idle(std::atomic<ControllerState> &state) {
  * range start, range end, range stride)
  */
 void listen(std::atomic<ControllerState> &controller_state,
-            std::function<std::vector<std::pair<uint32_t, float>>(
-                BufferedSerial &, uint32_t, uint32_t, uint32_t)>
+            std::function<std::vector<std::pair<float, float>>(
+                BufferedSerial &, float, float, float)>
                 analysis_func) {
   BufferedSerial usb_conn(USBTX, USBRX);
 
@@ -114,7 +114,7 @@ void listen(std::atomic<ControllerState> &controller_state,
 
     case PacketHeader::Analysis: {
       // Receive range
-      auto range = rpc_receive<BufferedSerial, uint32_t, 3>(usb_conn);
+      auto range = rpc_receive<BufferedSerial, float, 3>(usb_conn);
 
       // Notify simuation start
       controller_state.store(ControllerState::Analyse);

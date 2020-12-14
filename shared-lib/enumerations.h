@@ -26,5 +26,6 @@ enum AnalysisPacketHeader : uint32_t {
   InvalidArguments = 0,
   Start = 1,
   ResultsSize = 2
+  // TODO: Add not calibrated
 };
 } // namespace chroma

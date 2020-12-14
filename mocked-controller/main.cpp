@@ -14,9 +14,9 @@
  * @param tick_rate Stride between steps
  * @return Results
  */
-std::vector<std::pair<uint32_t, float>> analyse(BufferedSerial& socket, uint32_t start, uint32_t end, uint32_t stride) {
+std::vector<std::pair<float, float>> analyse(BufferedSerial& socket, float start, float end, float stride) {
     // Send invalid arguments
-    if (end > start) {
+    if (start > end) {
         chroma::rpc_send(socket, chroma::AnalysisPacketHeader::InvalidArguments);
     }
 
@@ -24,15 +24,17 @@ std::vector<std::pair<uint32_t, float>> analyse(BufferedSerial& socket, uint32_t
     chroma::rpc_send(socket, chroma::AnalysisPacketHeader::Start);
 
     // Run analysis
-    std::vector<std::pair<uint32_t, float>> results;
+    std::vector<std::pair<float, float>> results;
     auto step = start;
     do {
         // Calculate and store result
         auto now = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-        results.push_back(std::make_pair(step, std::cosf(now * step)));
+        results.push_back(std::make_pair(step, std::cosf(now * step) + 1.f));
 
         // Move to the next step
         step += stride;
+
+        ThisThread::sleep_for(50ms);
     } while (step < end);
 
     return results;

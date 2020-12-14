@@ -15,7 +15,7 @@ namespace chroma {
 static uint32_t _current_step = std::numeric_limits<uint32_t>::max();
 
 // Reference step (step and wavelength)
-static std::pair<uint32_t, uint32_t> _reference_step;
+static std::pair<uint32_t, float> _reference_step;
 
 /**
  * Move grating motor by one step, if positive_rotation is true then the current
@@ -37,7 +37,7 @@ void rotate_grating(bool positive_way) {
  *
  * @return Wavelength
  */
-uint32_t wavelength() {
+float wavelength() {
   return std::get<_REFERENCE_WAVELENGTH_INDEX>(_reference_step) -
          (std::get<_REFERENCE_STEP_INDEX>(_reference_step) - _current_step) *
              _MOTOR_WAVELENGTH_PER_STEP;
@@ -48,7 +48,7 @@ uint32_t wavelength() {
  *
  * @param wavelength Wavelength of the source installed
  */
-void calibrate(uint32_t wavelength) {
+void calibrate(float wavelength) {
   // Consider current motor state as the step 0
   _current_step = 0;
 
