@@ -8,6 +8,7 @@
 #include "constants.h"
 #include "enumerations.h"
 #include "mbed.h"
+#include "motor.hpp"
 #include "rpc_utilities.hpp"
 
 namespace chroma {
@@ -22,7 +23,8 @@ void to_idle(std::atomic<ControllerState> &state) {
                                     DigitalOut(LED3), DigitalOut(LED4)};
   const int IDLE_LED = 0;
   const int ANALYSIS_LED = 1;
-  const int PACKET_LED = 2;
+  const int CALIBRATE_LED = 2;
+  const int PACKET_LED = 3;
 
   while (true) {
     // Get current state
@@ -66,6 +68,13 @@ void to_idle(std::atomic<ControllerState> &state) {
       }
       break;
 
+    // Toggle calibration LED
+    case ControllerState::Calibrate:
+      for (auto i = 0; i < leds.size(); i++) {
+        leds[i] = i == CALIBRATE_LED ? !leds[CALIBRATE_LED] : 0;
+      }
+      break;
+
     // Turn on packet LED and update status
     case ControllerState::PacketReceived:
       leds[PACKET_LED] = 1;
@@ -92,11 +101,13 @@ void to_idle(std::atomic<ControllerState> &state) {
  * @param controller_state Controller state
  * @param analysis_func Function that runs analysis (arguments: PC connection,
  * range start, range end, range stride)
+ * @param calibration_func Function that callibrates the device
  */
 void listen(std::atomic<ControllerState> &controller_state,
             std::function<std::vector<std::pair<float, float>>(
                 BufferedSerial &, float, float, float)>
-                analysis_func) {
+                analysis_func,
+            std::function<void(float)> calibration_func) {
   BufferedSerial usb_conn(USBTX, USBRX);
 
   while (true) {
@@ -112,11 +123,49 @@ void listen(std::atomic<ControllerState> &controller_state,
       rpc_send(usb_conn, PING_RESPONSE);
       break;
 
+    case PacketHeader::Calibrate: {
+      // Receive arguments
+      auto wavelength = rpc_receive<BufferedSerial, float>(usb_conn);
+
+      // Send invalid arguments
+      if (wavelength <= 0) {
+        chroma::rpc_send(usb_conn,
+                         chroma::CalibratePacketHeader::InvalidArguments);
+        break;
+      }
+
+      // Notify calibration start
+      chroma::rpc_send(usb_conn, chroma::CalibratePacketHeader::Start);
+      controller_state.store(ControllerState::Calibrate);
+
+      // Calibrate device
+      calibration_func(wavelength);
+
+      // Notify calibration end
+      chroma::rpc_send(usb_conn, chroma::CalibratePacketHeader::End);
+      controller_state.store(ControllerState::Idle);
+      break;
+    }
+
     case PacketHeader::Analysis: {
-      // Receive range
+      // Receive arguments
       auto range = rpc_receive<BufferedSerial, float, 3>(usb_conn);
 
+      // Send invalid arguments
+      if (range[0] > range[1]) {
+        chroma::rpc_send(usb_conn,
+                         chroma::AnalysisPacketHeader::InvalidArguments);
+        break;
+      }
+
+      // Send not calibrated
+      if (!chroma::is_calibrated()) {
+        chroma::rpc_send(usb_conn, chroma::AnalysisPacketHeader::NotCalibrated);
+        break;
+      }
+
       // Notify simuation start
+      chroma::rpc_send(usb_conn, chroma::AnalysisPacketHeader::Start);
       controller_state.store(ControllerState::Analyse);
 
       // Run analysis

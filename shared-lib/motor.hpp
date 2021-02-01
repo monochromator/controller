@@ -78,7 +78,7 @@ void calibrate(float wavelength) {
  * @return true if grating motor has been calibrated at least one time, false
  * otherwise
  */
-bool is_calibrate() {
+bool is_calibrated() {
   return _current_step != std::numeric_limits<uint32_t>::max();
 }
 } // namespace chroma
